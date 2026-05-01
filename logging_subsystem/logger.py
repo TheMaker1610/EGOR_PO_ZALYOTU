@@ -24,6 +24,7 @@ _file_handler.setFormatter(_formatter)
 _console_handler = logging.StreamHandler()
 _console_handler.setFormatter(_formatter)
 
+
 def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
@@ -43,17 +44,19 @@ def make_event(
     user_id: int | None = None,
     ip_address: str | None = None,
     details: str | None = None,
+    headers: str | None = None,
 ) -> dict:
     """Формирует структурированную запись события (без паролей и PII)."""
     return {
-        "event_id": str(uuid.uuid4()),
-        "timestamp": datetime.utcnow().isoformat(),
+        "event_id":   str(uuid.uuid4()),
+        "timestamp":  datetime.utcnow().isoformat(),
         "event_type": event_type,
-        "component": component,
-        "username": username,
-        "user_id": user_id,
+        "component":  component,
+        "username":   username,
+        "user_id":    user_id,
         "ip_address": ip_address,
-        "details": details,
+        "details":    details,
+        "headers":    headers,
     }
 
 
@@ -64,15 +67,18 @@ def log_event(
     user_id: int | None = None,
     ip_address: str | None = None,
     details: str | None = None,
+    headers: str | None = None,
 ) -> dict:
-    event = make_event(event_type, component, username, user_id, ip_address, details)
+    event = make_event(event_type, component, username, user_id,
+                       ip_address, details, headers)
     app_logger.info(
-        "EVENT | id=%s | type=%s | component=%s | user=%s | ip=%s | %s",
+        "EVENT | id=%s | type=%s | component=%s | user=%s | ip=%s | headers=[%s] | %s",
         event["event_id"],
         event_type,
         component,
         username or "-",
         ip_address or "-",
+        headers or "-",
         details or "",
     )
     return event

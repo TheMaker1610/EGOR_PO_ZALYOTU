@@ -14,24 +14,25 @@ class AuthService:
         self.db = db
         self.audit = AuditService(db)
 
-    def login(self, username: str, password: str, ip: str = "127.0.0.1") -> dict:
+    def login(self, username: str, password: str,
+              ip: str = "127.0.0.1", headers: str | None = None) -> dict:
         user: User | None = self.db.query(User).filter_by(username=username).first()
 
         if not user:
-            self.audit.record("LOGIN_FAILED", "auth", username=username, ip_address=ip,
-                              details="User not found")
+            self.audit.record("LOGIN_FAILED", "auth", username=username,
+                              ip_address=ip, details="User not found", headers=headers)
             raise ValueError("Неверное имя пользователя или пароль")
 
-        # Check lock
         if user.locked_until and user.locked_until > datetime.utcnow():
             remaining = int((user.locked_until - datetime.utcnow()).total_seconds() / 60) + 1
             self.audit.record("LOGIN_BLOCKED", "auth", username=username, ip_address=ip,
-                              details=f"Account locked, {remaining} min remaining")
+                              details=f"Account locked, {remaining} min remaining",
+                              headers=headers)
             raise ValueError(f"Аккаунт заблокирован. Попробуйте через {remaining} мин.")
 
         if not user.is_active:
             self.audit.record("LOGIN_FAILED", "auth", username=username, ip_address=ip,
-                              details="Account inactive")
+                              details="Account inactive", headers=headers)
             raise ValueError("Аккаунт неактивен")
 
         if not verify_password(password, user.password_hash):
@@ -40,14 +41,17 @@ class AuthService:
                 user.locked_until = datetime.utcnow() + timedelta(minutes=settings.LOCKOUT_MINUTES)
                 self.db.commit()
                 self.audit.record("LOGIN_LOCKED", "auth", username=username, ip_address=ip,
-                                  details=f"Locked after {user.failed_attempts} failed attempts")
-                raise ValueError(f"Превышено количество попыток. Аккаунт заблокирован на {settings.LOCKOUT_MINUTES} мин.")
+                                  details=f"Locked after {user.failed_attempts} failed attempts",
+                                  headers=headers)
+                raise ValueError(
+                    f"Превышено количество попыток. Аккаунт заблокирован на {settings.LOCKOUT_MINUTES} мин.")
             self.db.commit()
             self.audit.record("LOGIN_FAILED", "auth", username=username, ip_address=ip,
-                              details=f"Wrong password, attempt {user.failed_attempts}")
-            raise ValueError(f"Неверный пароль. Осталось попыток: {settings.MAX_FAILED_ATTEMPTS - user.failed_attempts}")
+                              details=f"Wrong password, attempt {user.failed_attempts}",
+                              headers=headers)
+            raise ValueError(
+                f"Неверный пароль. Осталось попыток: {settings.MAX_FAILED_ATTEMPTS - user.failed_attempts}")
 
-        # Success
         user.failed_attempts = 0
         user.locked_until = None
         user.last_login_at = datetime.utcnow()
@@ -64,7 +68,7 @@ class AuthService:
         self.db.commit()
 
         self.audit.record("LOGIN_SUCCESS", "auth", username=username, user_id=user.id,
-                          ip_address=ip, details=f"role={user.role}")
+                          ip_address=ip, details=f"role={user.role}", headers=headers)
         return {
             "access_token": token,
             "token_type": "bearer",
@@ -73,17 +77,21 @@ class AuthService:
             "username": user.username,
         }
 
-    def logout(self, jti: str, username: str, user_id: int, ip: str = "127.0.0.1"):
+    def logout(self, jti: str, username: str, user_id: int,
+               ip: str = "127.0.0.1", headers: str | None = None):
         sess = self.db.query(DBSession).filter_by(jti=jti).first()
         if sess:
             sess.revoked = True
             self.db.commit()
-        self.audit.record("LOGOUT", "auth", username=username, user_id=user_id, ip_address=ip)
+        self.audit.record("LOGOUT", "auth", username=username, user_id=user_id,
+                          ip_address=ip, headers=headers)
 
-    def change_password(self, user: User, current_password: str, new_password: str, ip: str = "127.0.0.1"):
+    def change_password(self, user: User, current_password: str, new_password: str,
+                        ip: str = "127.0.0.1", headers: str | None = None):
         if not verify_password(current_password, user.password_hash):
             self.audit.record("CHANGE_PASSWORD_FAILED", "auth", username=user.username,
-                              user_id=user.id, ip_address=ip, details="Wrong current password")
+                              user_id=user.id, ip_address=ip,
+                              details="Wrong current password", headers=headers)
             raise ValueError("Неверный текущий пароль")
 
         errors = validate_password(new_password, user.username, user.role)
@@ -94,4 +102,4 @@ class AuthService:
         user.must_change_password = False
         self.db.commit()
         self.audit.record("CHANGE_PASSWORD_SUCCESS", "auth", username=user.username,
-                          user_id=user.id, ip_address=ip)
+                          user_id=user.id, ip_address=ip, headers=headers)

@@ -9,7 +9,7 @@ from database.engine import get_db
 from database.models import User
 from schemas.calculation import CalculationInput, CalculationResult, CalculationHistoryItem, ChartPoint
 from services.calc_service import CalcService
-from ё.middleware import limiter
+from ё.middleware import limiter, extract_headers
 
 router = APIRouter(prefix="/calc", tags=["calc"])
 
@@ -23,9 +23,10 @@ def run_calculation(
     db: Session = Depends(get_db),
 ):
     ip = request.client.host if request.client else "unknown"
+    hdrs = extract_headers(request)
     svc = CalcService(db)
     data = svc.calculate(body.model_dump(), user_id=current_user.id,
-                         username=current_user.username, ip=ip)
+                         username=current_user.username, ip=ip, headers=hdrs)
     result = data["result"]
     chart_raw = data["chart_data"]
     return CalculationResult(
@@ -40,10 +41,6 @@ def blocks_analysis(
     body: CalculationInput,
     current_user: User = Depends(require_password_changed),
 ):
-    """
-    Анализ эффективности при разном числе блоков — из Приложения 1,
-    функция analyze_load_distribution.
-    """
     rows = analyze_load_distribution(
         total_load_mw=body.total_load_mw,
         temp_c=body.temp_c,

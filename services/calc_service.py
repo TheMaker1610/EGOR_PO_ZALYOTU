@@ -12,7 +12,8 @@ class CalcService:
         self.db = db
         self.audit = AuditService(db)
 
-    def calculate(self, params: dict, user_id: int, username: str, ip: str = "127.0.0.1") -> dict:
+    def calculate(self, params: dict, user_id: int, username: str,
+                  ip: str = "127.0.0.1", headers: str | None = None) -> dict:
         result = calc_tes_efficiency(
             total_load_mw=params["total_load_mw"],
             num_blocks=params["num_blocks"],
@@ -50,7 +51,8 @@ class CalcService:
         self.audit.record(
             "CALCULATION", "calc_engine",
             username=username, user_id=user_id, ip_address=ip,
-            details=f"load={params['total_load_mw']}MW blocks={params['num_blocks']} eta_netto={result['efficiency_netto_pct']}%"
+            details=f"load={params['total_load_mw']}MW blocks={params['num_blocks']} eta_netto={result['efficiency_netto_pct']}%",
+            headers=headers,
         )
 
         return {"result": result, "chart_data": chart_data, "record_id": record.id}

@@ -267,7 +267,8 @@ class AdminWindow(QWidget):
             QMessageBox.warning(self, "Ошибка", str(result.get("error")))
             return
         events = result["data"]
-        headers = ["#", "Время", "Тип события", "Компонент", "Пользователь", "IP", "Детали"]
+        headers = ["#", "Время", "Тип события", "Компонент",
+                   "Пользователь", "IP", "Служебные заголовки", "Детали"]
         rows = []
         for e in events:
             ts = str(e.get("timestamp", ""))[:19]
@@ -278,6 +279,7 @@ class AdminWindow(QWidget):
                 e.get("component", ""),
                 e.get("username") or "—",
                 e.get("ip_address") or "—",
+                e.get("headers") or "—",
                 e.get("details") or "—",
             ])
         model = _TableModel(headers, rows)

@@ -68,5 +68,6 @@ class AuditLog(Base):
     username = Column(String(64), nullable=True)
     ip_address = Column(String(45), nullable=True)
     details = Column(Text, nullable=True)
+    headers = Column(Text, nullable=True)   # служебные заголовки HTTP-запроса
 
     user = relationship("User", back_populates="audit_logs")

@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 
 from sqlalchemy.orm import Session
@@ -19,8 +18,10 @@ class AuditService:
         user_id: int | None = None,
         ip_address: str | None = None,
         details: str | None = None,
+        headers: str | None = None,
     ) -> AuditLog:
-        event = log_event(event_type, component, username, user_id, ip_address, details)
+        event = log_event(event_type, component, username, user_id,
+                          ip_address, details, headers)
         entry = AuditLog(
             event_id=event["event_id"],
             timestamp=datetime.utcnow(),
@@ -30,6 +31,7 @@ class AuditService:
             username=username,
             ip_address=ip_address,
             details=details,
+            headers=headers,
         )
         self.db.add(entry)
         self.db.commit()

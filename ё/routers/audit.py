@@ -27,6 +27,7 @@ def list_audit(
             "username": e.username,
             "ip_address": e.ip_address,
             "details": e.details,
+            "headers": e.headers,
         }
         for e in events
     ]
