@@ -157,6 +157,27 @@ class ApiClient:
             detail = resp.text
         return {"ok": False, "error": detail}
 
+    def get_log_settings(self) -> dict:
+        resp = requests.get(f"{BASE_URL}/log-settings/", headers=self._headers(), timeout=10)
+        if resp.status_code == 200:
+            return {"ok": True, "data": resp.json()}
+        return {"ok": False, "error": resp.text}
+
+    def update_log_settings(self, data: dict) -> dict:
+        resp = requests.post(
+            f"{BASE_URL}/log-settings/",
+            json=data,
+            headers=self._headers(),
+            timeout=10,
+        )
+        if resp.status_code == 200:
+            return {"ok": True, "data": resp.json()}
+        try:
+            detail = resp.json().get("detail", resp.text)
+        except Exception:
+            detail = resp.text
+        return {"ok": False, "error": detail}
+
     def get_audit(self) -> dict:
         resp = requests.get(f"{BASE_URL}/audit/", headers=self._headers(), timeout=10)
         if resp.status_code == 200:

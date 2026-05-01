@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
     QTableView, QPushButton, QLabel, QLineEdit,
     QComboBox, QMessageBox, QDialog, QFormLayout,
-    QHeaderView, QGroupBox, QSizePolicy,
+    QHeaderView, QGroupBox, QSizePolicy, QSpinBox,
 )
 
 
@@ -165,8 +165,75 @@ class AdminWindow(QWidget):
 
         tabs.addTab(audit_tab, "Журнал событий")
 
+        # Tab 3 — Log settings
+        log_tab = QWidget()
+        log_layout = QVBoxLayout(log_tab)
+
+        log_group = QGroupBox("Настройки журнала регистрации событий")
+        log_form = QFormLayout()
+        log_form.setVerticalSpacing(12)
+
+        self.log_max_mb_spin = QSpinBox()
+        self.log_max_mb_spin.setRange(1, 500)
+        self.log_max_mb_spin.setValue(5)
+        self.log_max_mb_spin.setSuffix(" МБ")
+        log_form.addRow("Макс. размер файла журнала:", self.log_max_mb_spin)
+
+        self.log_backup_spin = QSpinBox()
+        self.log_backup_spin.setRange(1, 50)
+        self.log_backup_spin.setValue(5)
+        self.log_backup_spin.setSuffix(" файлов")
+        log_form.addRow("Количество архивных копий (глубина хранения):", self.log_backup_spin)
+
+        self.log_retention_spin = QSpinBox()
+        self.log_retention_spin.setRange(1, 3650)
+        self.log_retention_spin.setValue(30)
+        self.log_retention_spin.setSuffix(" дней")
+        log_form.addRow("Срок хранения записей:", self.log_retention_spin)
+
+        self.log_level_combo = QComboBox()
+        self.log_level_combo.addItems(["DEBUG", "INFO", "WARNING", "ERROR"])
+        self.log_level_combo.setCurrentText("INFO")
+        log_form.addRow("Уровень детализации:", self.log_level_combo)
+
+        self.log_remote_edit = QLineEdit()
+        self.log_remote_edit.setPlaceholderText("http://log-server:514/  (оставьте пустым для отключения)")
+        log_form.addRow("URL удалённого сервера логов:", self.log_remote_edit)
+
+        log_group.setLayout(log_form)
+        log_layout.addWidget(log_group)
+
+        log_hint = QLabel(
+            "DEBUG — максимальная детализация\n"
+            "INFO — стандартный уровень (рекомендуется)\n"
+            "WARNING — только предупреждения и ошибки\n"
+            "ERROR — только критические ошибки"
+        )
+        log_hint.setStyleSheet("color: gray; font-size: 11px;")
+        log_layout.addWidget(log_hint)
+
+        self.log_status_label = QLabel("")
+        self.log_status_label.setStyleSheet("color: green; font-weight: bold;")
+        log_layout.addWidget(self.log_status_label)
+
+        log_btn_row = QHBoxLayout()
+        load_log_btn = QPushButton("Загрузить текущие настройки")
+        load_log_btn.clicked.connect(self._load_log_settings)
+        save_log_btn = QPushButton("Применить")
+        save_log_btn.setStyleSheet(
+            "background: #1a6faf; color: white; padding: 5px 16px; border-radius: 3px;")
+        save_log_btn.clicked.connect(self._save_log_settings)
+        log_btn_row.addWidget(load_log_btn)
+        log_btn_row.addWidget(save_log_btn)
+        log_btn_row.addStretch()
+        log_layout.addLayout(log_btn_row)
+        log_layout.addStretch()
+
+        tabs.addTab(log_tab, "Настройки журнала")
+
         self._load_users()
         self._load_audit()
+        self._load_log_settings()
 
     def _load_users(self):
         result = self.api.get_users()
@@ -284,3 +351,34 @@ class AdminWindow(QWidget):
             ])
         model = _TableModel(headers, rows)
         self.audit_table.setModel(model)
+
+    def _load_log_settings(self):
+        result = self.api.get_log_settings()
+        if not result["ok"]:
+            return
+        d = result["data"]
+        self.log_max_mb_spin.setValue(d.get("log_max_mb", 5))
+        self.log_backup_spin.setValue(d.get("log_backup_count", 5))
+        self.log_retention_spin.setValue(d.get("log_retention_days", 30))
+        level = d.get("log_level", "INFO")
+        idx = self.log_level_combo.findText(level)
+        if idx >= 0:
+            self.log_level_combo.setCurrentIndex(idx)
+        self.log_remote_edit.setText(d.get("log_remote_url", ""))
+        self.log_status_label.setText("")
+
+    def _save_log_settings(self):
+        data = {
+            "log_max_mb":        self.log_max_mb_spin.value(),
+            "log_backup_count":  self.log_backup_spin.value(),
+            "log_retention_days": self.log_retention_spin.value(),
+            "log_level":         self.log_level_combo.currentText(),
+            "log_remote_url":    self.log_remote_edit.text().strip(),
+        }
+        result = self.api.update_log_settings(data)
+        if result["ok"]:
+            self.log_status_label.setText("Настройки применены успешно")
+            self.log_status_label.setStyleSheet("color: green; font-weight: bold;")
+        else:
+            self.log_status_label.setText(f"Ошибка: {result.get('error')}")
+            self.log_status_label.setStyleSheet("color: red; font-weight: bold;")
