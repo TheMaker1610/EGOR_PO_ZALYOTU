@@ -192,7 +192,7 @@ class AdminWindow(QWidget):
         log_form.addRow("Срок хранения записей:", self.log_retention_spin)
 
         self.log_level_combo = QComboBox()
-        self.log_level_combo.addItems(["DEBUG", "INFO", "WARNING", "ERROR"])
+        self.log_level_combo.addItems(["ALL", "DEBUG", "INFO", "WARNING", "ERROR"])
         self.log_level_combo.setCurrentText("INFO")
         log_form.addRow("Уровень детализации:", self.log_level_combo)
 
@@ -204,10 +204,11 @@ class AdminWindow(QWidget):
         log_layout.addWidget(log_group)
 
         log_hint = QLabel(
-            "DEBUG — максимальная детализация\n"
-            "INFO — стандартный уровень (рекомендуется)\n"
-            "WARNING — только предупреждения и ошибки\n"
-            "ERROR — только критические ошибки"
+            "ALL     — абсолютно все события всех уровней\n"
+            "DEBUG   — технические детали + все события аудита\n"
+            "INFO    — стандартный уровень: входы, расчёты, изменения (рекомендуется)\n"
+            "WARNING — только неверные пароли и блокировки\n"
+            "ERROR   — только критические блокировки аккаунтов"
         )
         log_hint.setStyleSheet("color: gray; font-size: 11px;")
         log_layout.addWidget(log_hint)

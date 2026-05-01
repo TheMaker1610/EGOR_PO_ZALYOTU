@@ -36,6 +36,48 @@ def get_logger(name: str) -> logging.Logger:
 
 app_logger = get_logger("tes_app")
 
+# Таблица: тип события → уровень логирования
+# Позволяет фильтровать события по уровню детализации
+_EVENT_LEVELS: dict[str, int] = {
+    # ERROR — критические сбои (попытки взлома, блокировки)
+    "LOGIN_LOCKED":           logging.ERROR,
+    "LOGIN_BLOCKED":          logging.ERROR,
+    # WARNING — подозрительные действия
+    "LOGIN_FAILED":           logging.WARNING,
+    "CHANGE_PASSWORD_FAILED": logging.WARNING,
+    # INFO — штатные события аудита
+    "LOGIN_SUCCESS":          logging.INFO,
+    "LOGOUT":                 logging.INFO,
+    "CHANGE_PASSWORD_SUCCESS":logging.INFO,
+    "USER_CREATED":           logging.INFO,
+    "USER_UPDATED":           logging.INFO,
+    "USER_UNLOCKED":          logging.INFO,
+    "PASSWORD_RESET":         logging.INFO,
+    "CALCULATION":            logging.INFO,
+    # DEBUG — детальные технические события
+    "API_REQUEST":            logging.DEBUG,
+}
+
+
+def _level_for(event_type: str) -> int:
+    return _EVENT_LEVELS.get(event_type, logging.INFO)
+
+
+def set_log_level(level_name: str):
+    """
+    Устанавливает уровень детализации журнала.
+    Поддерживаемые значения: ALL, DEBUG, INFO, WARNING, ERROR.
+    ALL — фиксируются абсолютно все события всех уровней.
+    """
+    if level_name == "ALL":
+        numeric = logging.NOTSET  # 0 — пропускает всё
+    else:
+        numeric = getattr(logging, level_name, logging.INFO)
+
+    app_logger.setLevel(numeric)
+    for handler in app_logger.handlers:
+        handler.setLevel(numeric)
+
 
 def make_event(
     event_type: str,
@@ -71,7 +113,9 @@ def log_event(
 ) -> dict:
     event = make_event(event_type, component, username, user_id,
                        ip_address, details, headers)
-    app_logger.info(
+    level = _level_for(event_type)
+    app_logger.log(
+        level,
         "EVENT | id=%s | type=%s | component=%s | user=%s | ip=%s | headers=[%s] | %s",
         event["event_id"],
         event_type,
