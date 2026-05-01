@@ -71,6 +71,21 @@ class ApiClient:
             detail = resp.text
         return {"ok": False, "error": detail}
 
+    def get_blocks_analysis(self, params: dict) -> dict:
+        resp = requests.post(
+            f"{BASE_URL}/calc/blocks-analysis",
+            json=params,
+            headers=self._headers(),
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            return {"ok": True, "data": resp.json()}
+        try:
+            detail = resp.json().get("detail", resp.text)
+        except Exception:
+            detail = resp.text
+        return {"ok": False, "error": detail}
+
     def get_history(self) -> dict:
         resp = requests.get(f"{BASE_URL}/calc/history", headers=self._headers(), timeout=10)
         if resp.status_code == 200:

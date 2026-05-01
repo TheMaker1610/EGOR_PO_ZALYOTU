@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from auth.dependencies import get_current_user, require_password_changed
+from core.math_engine import analyze_load_distribution
 from database.engine import get_db
 from database.models import User
 from schemas.calculation import CalculationInput, CalculationResult, CalculationHistoryItem, ChartPoint
@@ -32,6 +33,29 @@ def run_calculation(
         chart_data=[ChartPoint(**p) for p in chart_raw],
         record_id=data["record_id"],
     )
+
+
+@router.post("/blocks-analysis")
+def blocks_analysis(
+    body: CalculationInput,
+    current_user: User = Depends(require_password_changed),
+):
+    """
+    Анализ эффективности при разном числе блоков — из Приложения 1,
+    функция analyze_load_distribution.
+    """
+    rows = analyze_load_distribution(
+        total_load_mw=body.total_load_mw,
+        temp_c=body.temp_c,
+        humidity=body.humidity,
+        wind_speed=body.wind_speed,
+        wind_dir=body.wind_dir,
+        nominal_power_per_block=body.nominal_power_per_block,
+        nominal_efficiency=body.nominal_efficiency,
+        own_needs_coeff=body.own_needs_coeff,
+        beta=body.beta,
+    )
+    return rows
 
 
 @router.get("/history", response_model=list[CalculationHistoryItem])
