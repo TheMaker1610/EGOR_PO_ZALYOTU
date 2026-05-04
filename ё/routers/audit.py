@@ -5,6 +5,7 @@ from auth.dependencies import require_admin
 from database.engine import get_db
 from database.models import User, AuditLog
 from services.audit_service import AuditService
+from logging_subsystem.logger import app_logger, _level_for
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 
@@ -17,8 +18,14 @@ def list_audit(
     db: Session = Depends(get_db),
 ):
     events = AuditService(db).list_events(limit=limit, offset=offset)
-    return [
-        {
+    logger_level = app_logger.level  # 0 = NOTSET = ALL
+
+    result = []
+    for e in events:
+        # Фильтруем исторические записи по текущему уровню детализации
+        if logger_level != 0 and _level_for(e.event_type) < logger_level:
+            continue
+        result.append({
             "id": e.id,
             "event_id": e.event_id,
             "timestamp": e.timestamp.isoformat() if e.timestamp else None,
@@ -28,6 +35,5 @@ def list_audit(
             "ip_address": e.ip_address,
             "details": e.details,
             "headers": e.headers,
-        }
-        for e in events
-    ]
+        })
+    return result
