@@ -20,11 +20,11 @@ class AuditService:
         details: str | None = None,
         headers: str | None = None,
     ) -> AuditLog | None:
-        # Проверяем, проходит ли событие через текущий уровень фильтрации.
-        # Если уровень события ниже порога — не пишем ни в лог, ни в БД.
+        # Проверяем, соответствует ли событие выбранному уровню фильтрации.
+        # ALL (0) — пишем всё. Остальные уровни — только точное совпадение.
         event_level = _level_for(event_type)
         logger_level = app_logger.level  # 0 = NOTSET = ALL
-        if logger_level != 0 and event_level < logger_level:
+        if logger_level != 0 and event_level != logger_level:
             return None
 
         event = log_event(event_type, component, username, user_id,

@@ -23,7 +23,8 @@ def list_audit(
     result = []
     for e in events:
         # Фильтруем исторические записи по текущему уровню детализации
-        if logger_level != 0 and _level_for(e.event_type) < logger_level:
+        # ALL (0) — показываем всё. Остальные уровни — только точное совпадение.
+        if logger_level != 0 and _level_for(e.event_type) != logger_level:
             continue
         result.append({
             "id": e.id,
