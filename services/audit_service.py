@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from database.models import AuditLog
-from logging_subsystem.logger import log_event
+from logging_subsystem.logger import log_event, app_logger, _level_for
 
 
 class AuditService:
@@ -19,7 +19,14 @@ class AuditService:
         ip_address: str | None = None,
         details: str | None = None,
         headers: str | None = None,
-    ) -> AuditLog:
+    ) -> AuditLog | None:
+        # Проверяем, проходит ли событие через текущий уровень фильтрации.
+        # Если уровень события ниже порога — не пишем ни в лог, ни в БД.
+        event_level = _level_for(event_type)
+        logger_level = app_logger.level  # 0 = NOTSET = ALL
+        if logger_level != 0 and event_level < logger_level:
+            return None
+
         event = log_event(event_type, component, username, user_id,
                           ip_address, details, headers)
         entry = AuditLog(
