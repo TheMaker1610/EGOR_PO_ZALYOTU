@@ -60,7 +60,7 @@ class DbWindow(QWidget):
             ("users",         "Таблица: users\n(пользователи, роли, статусы, хэши паролей не отображаются)"),
             ("sessions",      "Таблица: sessions\n(JWT-сессии, статус отзыва)"),
             ("calculations",  "Таблица: calculation_records\n(история расчётов)"),
-            ("audit-logs",    "Таблица: audit_logs\n(журнал событий)"),
+            ("audit-logs",    "Таблица: audit_logs\n(журнал событий — аудит)"),
         ]
 
         self._tables = {}

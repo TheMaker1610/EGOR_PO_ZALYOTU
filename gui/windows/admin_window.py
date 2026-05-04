@@ -164,7 +164,7 @@ class AdminWindow(QWidget):
         self.audit_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         audit_layout.addWidget(self.audit_table)
 
-        tabs.addTab(audit_tab, "Журнал событий")
+        tabs.addTab(audit_tab, "Журнал событий (аудит)")
 
         # Tab 3 — Log settings
         log_tab = QWidget()
