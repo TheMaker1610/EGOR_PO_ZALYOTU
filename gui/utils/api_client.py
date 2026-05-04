@@ -157,6 +157,12 @@ class ApiClient:
             detail = resp.text
         return {"ok": False, "error": detail}
 
+    def get_db_table(self, table: str) -> dict:
+        resp = requests.get(f"{BASE_URL}/db/{table}", headers=self._headers(), timeout=10)
+        if resp.status_code == 200:
+            return {"ok": True, "data": resp.json()}
+        return {"ok": False, "error": resp.text}
+
     def get_log_settings(self) -> dict:
         resp = requests.get(f"{BASE_URL}/log-settings/", headers=self._headers(), timeout=10)
         if resp.status_code == 200:

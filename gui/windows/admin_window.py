@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
     QComboBox, QMessageBox, QDialog, QFormLayout,
     QHeaderView, QGroupBox, QSizePolicy, QSpinBox,
 )
+from gui.windows.db_window import DbWindow
 
 
 class _TableModel(QAbstractTableModel):
@@ -231,6 +232,10 @@ class AdminWindow(QWidget):
         log_layout.addStretch()
 
         tabs.addTab(log_tab, "Настройки журнала")
+
+        # Tab 4 — DB viewer
+        db_tab = DbWindow(self.api)
+        tabs.addTab(db_tab, "База данных")
 
         self._load_users()
         self._load_audit()
