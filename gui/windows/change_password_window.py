@@ -11,7 +11,7 @@ class ChangePasswordWindow(QDialog):
         self.api = api_client
         self.forced = forced
         self.setWindowTitle("Смена пароля")
-        self.setFixedSize(420, 300)
+        self.setFixedSize(420, 380)
         if forced:
             self.setWindowFlags(self.windowFlags() & ~Qt.WindowCloseButtonHint)
         self._build_ui()
@@ -44,7 +44,16 @@ class ChangePasswordWindow(QDialog):
 
         outer.addLayout(form)
 
-        hint = QLabel("≥6 символов: A-Z, a-z, 0-9, спецсимвол (~@%&*$^!#)")
+        hint = QLabel(
+            "Требования к паролю:\n"
+            "  • Пользователь: не менее 6 символов\n"
+            "  • Администратор: не менее 7 символов\n"
+            "  • Заглавная буква (A-Z)\n"
+            "  • Строчная буква (a-z)\n"
+            "  • Цифра (0-9)\n"
+            "  • Спецсимвол: ~ @ % & * $ ^ ! #\n"
+            "  • Пароль не должен содержать имя пользователя"
+        )
         hint.setStyleSheet("color: gray; font-size: 11px;")
         hint.setWordWrap(True)
         outer.addWidget(hint)

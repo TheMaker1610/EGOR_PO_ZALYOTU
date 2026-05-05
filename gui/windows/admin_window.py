@@ -37,7 +37,7 @@ class _CreateUserDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Создать пользователя")
-        self.setFixedSize(360, 240)
+        self.setFixedSize(360, 320)
         layout = QVBoxLayout(self)
         form = QFormLayout()
 
@@ -54,7 +54,16 @@ class _CreateUserDialog(QDialog):
 
         layout.addLayout(form)
 
-        hint = QLabel("Пароль: ≥6 (user) / ≥7 (admin) символов,\nA-Z, a-z, 0-9, спецсимвол")
+        hint = QLabel(
+            "Требования к паролю:\n"
+            "  • Пользователь: не менее 6 символов\n"
+            "  • Администратор: не менее 7 символов\n"
+            "  • Заглавная буква (A-Z)\n"
+            "  • Строчная буква (a-z)\n"
+            "  • Цифра (0-9)\n"
+            "  • Спецсимвол: ~ @ % & * $ ^ ! #\n"
+            "  • Пароль не должен содержать имя пользователя"
+        )
         hint.setStyleSheet("color:gray; font-size:10px;")
         layout.addWidget(hint)
 
@@ -76,7 +85,7 @@ class _ResetPasswordDialog(QDialog):
     def __init__(self, username: str, parent=None):
         super().__init__(parent)
         self.setWindowTitle(f"Сброс пароля: {username}")
-        self.setFixedSize(340, 160)
+        self.setFixedSize(380, 280)
         layout = QVBoxLayout(self)
         form = QFormLayout()
 
@@ -84,6 +93,19 @@ class _ResetPasswordDialog(QDialog):
         self.password_edit.setEchoMode(QLineEdit.Password)
         form.addRow("Новый пароль:", self.password_edit)
         layout.addLayout(form)
+
+        hint = QLabel(
+            "Требования к паролю:\n"
+            "  • Пользователь: не менее 6 символов\n"
+            "  • Администратор: не менее 7 символов\n"
+            "  • Заглавная буква (A-Z)\n"
+            "  • Строчная буква (a-z)\n"
+            "  • Цифра (0-9)\n"
+            "  • Спецсимвол: ~ @ % & * $ ^ ! #\n"
+            "  • Пароль не должен содержать имя пользователя"
+        )
+        hint.setStyleSheet("color:gray; font-size:10px;")
+        layout.addWidget(hint)
 
         self.status_label = QLabel("")
         self.status_label.setStyleSheet("color:red;")
