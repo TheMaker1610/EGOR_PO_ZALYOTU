@@ -14,7 +14,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("20/minute")
-def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
+async def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
     ip = request.client.host if request.client else "unknown"
     hdrs = extract_headers(request)
     svc = AuthService(db)
@@ -26,7 +26,7 @@ def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/logout")
-def logout(
+async def logout(
     request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -42,7 +42,7 @@ def logout(
 
 
 @router.post("/change-password")
-def change_password(
+async def change_password(
     request: Request,
     body: ChangePasswordRequest,
     current_user: User = Depends(get_current_user),

@@ -17,7 +17,7 @@ class LogSettingsUpdate(BaseModel):
 
 
 @router.get("/")
-def get_log_settings(admin: User = Depends(require_admin)):
+async def get_log_settings(admin: User = Depends(require_admin)):
     import logging
     import logging_subsystem.logger as log_mod
     current_level = log_mod.app_logger.level
@@ -35,7 +35,7 @@ def get_log_settings(admin: User = Depends(require_admin)):
 
 
 @router.post("/")
-def update_log_settings(
+async def update_log_settings(
     body: LogSettingsUpdate,
     admin: User = Depends(require_admin),
 ):

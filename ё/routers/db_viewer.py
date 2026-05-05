@@ -10,7 +10,7 @@ router = APIRouter(prefix="/db", tags=["db"])
 
 
 @router.get("/users")
-def db_users(admin=Depends(require_admin), db: Session = Depends(get_db)):
+async def db_users(admin=Depends(require_admin), db: Session = Depends(get_db)):
     rows = db.query(User).all()
     return [
         {
@@ -29,7 +29,7 @@ def db_users(admin=Depends(require_admin), db: Session = Depends(get_db)):
 
 
 @router.get("/sessions")
-def db_sessions(admin=Depends(require_admin), db: Session = Depends(get_db)):
+async def db_sessions(admin=Depends(require_admin), db: Session = Depends(get_db)):
     rows = db.query(DBSession).order_by(DBSession.issued_at.desc()).limit(100).all()
     return [
         {
@@ -45,7 +45,7 @@ def db_sessions(admin=Depends(require_admin), db: Session = Depends(get_db)):
 
 
 @router.get("/calculations")
-def db_calculations(admin=Depends(require_admin), db: Session = Depends(get_db)):
+async def db_calculations(admin=Depends(require_admin), db: Session = Depends(get_db)):
     rows = db.query(CalculationRecord).order_by(CalculationRecord.created_at.desc()).limit(100).all()
     return [
         {
@@ -60,7 +60,7 @@ def db_calculations(admin=Depends(require_admin), db: Session = Depends(get_db))
 
 
 @router.get("/audit-logs")
-def db_audit(admin=Depends(require_admin), db: Session = Depends(get_db)):
+async def db_audit(admin=Depends(require_admin), db: Session = Depends(get_db)):
     rows = db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(100).all()
     return [
         {

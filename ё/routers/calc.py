@@ -16,7 +16,7 @@ router = APIRouter(prefix="/calc", tags=["calc"])
 
 @router.post("/run", response_model=CalculationResult)
 @limiter.limit("60/minute")
-def run_calculation(
+async def run_calculation(
     request: Request,
     body: CalculationInput,
     current_user: User = Depends(require_password_changed),
@@ -37,7 +37,7 @@ def run_calculation(
 
 
 @router.post("/blocks-analysis")
-def blocks_analysis(
+async def blocks_analysis(
     body: CalculationInput,
     current_user: User = Depends(require_password_changed),
 ):
@@ -56,7 +56,7 @@ def blocks_analysis(
 
 
 @router.get("/history", response_model=list[CalculationHistoryItem])
-def get_history(
+async def get_history(
     current_user: User = Depends(require_password_changed),
     db: Session = Depends(get_db),
 ):

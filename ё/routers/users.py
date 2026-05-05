@@ -11,7 +11,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/", response_model=list[UserRead])
-def list_users(
+async def list_users(
     admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
@@ -19,7 +19,7 @@ def list_users(
 
 
 @router.post("/", response_model=UserRead)
-def create_user(
+async def create_user(
     request: Request,
     body: UserCreate,
     admin: User = Depends(require_admin),
@@ -34,7 +34,7 @@ def create_user(
 
 
 @router.patch("/{user_id}", response_model=UserRead)
-def update_user(
+async def update_user(
     user_id: int,
     request: Request,
     body: UserUpdate,
@@ -52,7 +52,7 @@ def update_user(
 
 
 @router.post("/{user_id}/reset-password")
-def reset_password(
+async def reset_password(
     user_id: int,
     request: Request,
     body: dict,
@@ -69,7 +69,7 @@ def reset_password(
 
 
 @router.post("/{user_id}/unlock")
-def unlock_user(
+async def unlock_user(
     user_id: int,
     request: Request,
     admin: User = Depends(require_admin),
