@@ -4,7 +4,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from database.engine import init_db
-from ё.middleware import limiter
+from ё.middleware import limiter, AuditRequestMiddleware
 from ё.routers import auth_router, calc_router, users_router, audit_router, log_settings_router, db_viewer_router
 
 
@@ -22,6 +22,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(AuditRequestMiddleware)
 
     app.include_router(auth_router)
     app.include_router(calc_router)
